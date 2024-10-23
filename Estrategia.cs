@@ -33,7 +33,7 @@ namespace tpfinal
                    $"Altura del MaxHeap (por prioridad): {alturaMaxHeap}";
         }
 
-        // Consulta 3: Retorna los datos de las Heaps con los niveles explícitos
+        // Consulta 3: Retorna los datos de las Heaps con los niveles 
         public String Consulta3(List<Proceso> datos)
         {
             Proceso[] minHeap = BuildHeap(datos, (x, y) => x.tiempo.CompareTo(y.tiempo), true);
