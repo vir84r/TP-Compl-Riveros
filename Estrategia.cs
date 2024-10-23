@@ -1,108 +1,161 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Numerics;
+using tp1;
 
 namespace tpfinal
 {
     public class Estrategia
     {
-        // 1. Shortest Job First (SJF) usando MinHeap
-        public void ShortesJobFirst(List<Proceso> datos, List<Proceso> collected)
+        // Consulta1: Retorna las hojas de las Heaps
+
+        public String Consulta1(List<Proceso> datos)
         {
-            // Usamos una PriorityQueue como MinHeap para ordenar por tiempo de CPU (menor primero)
-            PriorityQueue<Proceso, int> minHeap = new PriorityQueue<Proceso, int>();
+            List<Proceso> hojasMinHeap = GetHojas(BuildHeap(datos, (x, y) => x.tiempo.CompareTo(y.tiempo), true));
+            List<Proceso> hojasMaxHeap = GetHojas(BuildHeap(datos, (x, y) => x.prioridad.CompareTo(y.prioridad), false));
 
-            // Insertamos los procesos en la MinHeap
-            foreach (var proceso in datos)
-            {
-                minHeap.Enqueue(proceso, proceso.tiempo);
-            }
+            string resultadoMinHeap = "Hojas del MinHeap (por tiempo de ejecución):\n" + string.Join("\n", hojasMinHeap);
+            string resultadoMaxHeap = "Hojas del MaxHeap (por prioridad):\n" + string.Join("\n", hojasMaxHeap);
 
-            // Extraemos los procesos en el orden de menor a mayor tiempo de uso de CPU
-            while (minHeap.Count > 0)
-            {
-                collected.Add(minHeap.Dequeue());
-            }
+            return resultadoMinHeap + "\n\n" + resultadoMaxHeap;
         }
 
-        // 2. Preemptive Priority CPU Scheduling Algorithm (PPCSA) usando MaxHeap
-        public void PreemptivePriority(List<Proceso> datos, List<Proceso> collected)
+        // Consulta 2: retorna las alturas de las Heaps
+        
+        public String Consulta2(List<Proceso> datos)
         {
-            // Usamos una PriorityQueue como MaxHeap, invirtiendo el criterio de prioridad (mayor primero)
-            PriorityQueue<Proceso, int> maxHeap = new PriorityQueue<Proceso, int>(Comparer<int>.Create((x, y) => y.CompareTo(x)));
+            Proceso[] minHeap = BuildHeap(datos, (x, y) => x.tiempo.CompareTo(y.tiempo), true);
+            Proceso[] maxHeap = BuildHeap(datos, (x, y) => x.prioridad.CompareTo(y.prioridad), false);
 
-            // Insertamos los procesos en la MaxHeap
-            foreach (var proceso in datos)
-            {
-                maxHeap.Enqueue(proceso, proceso.prioridad);
-            }
+            int alturaMinHeap = GetAltura(minHeap);
+            int alturaMaxHeap = GetAltura(maxHeap);
 
-            // Extraemos los procesos en el orden de mayor a menor prioridad
-            while (maxHeap.Count > 0)
-            {
-                collected.Add(maxHeap.Dequeue());
-            }
+            return $"Altura del MinHeap (por tiempo de ejecución): {alturaMinHeap}\n" +
+                   $"Altura del MaxHeap (por prioridad): {alturaMaxHeap}";
         }
 
-        // 3. Consulta 1: Retorna las hojas de las Heaps (últimos elementos)
-        public string Consulta1(List<Proceso> datos)
+        // Consulta 3: Retorna los datos de las Heaps con los niveles explícitos
+        public String Consulta3(List<Proceso> datos)
         {
-            PriorityQueue<Proceso, int> minHeap = new PriorityQueue<Proceso, int>();
-            PriorityQueue<Proceso, int> maxHeap = new PriorityQueue<Proceso, int>(Comparer<int>.Create((x, y) => y.CompareTo(x)));
-
-            foreach (var proceso in datos)
-            {
-                minHeap.Enqueue(proceso, proceso.tiempo);
-                maxHeap.Enqueue(proceso, proceso.prioridad);
-            }
-
-            // En PriorityQueue, las hojas serán los últimos elementos insertados
-            string hojasMinHeap = minHeap.Count > 0 ? minHeap.Peek().ToString() : "Sin elementos";
-            string hojasMaxHeap = maxHeap.Count > 0 ? maxHeap.Peek().ToString() : "Sin elementos";
-
-            return $"Hojas en MinHeap (SJF): {hojasMinHeap}\nHojas en MaxHeap (PPCSA): {hojasMaxHeap}";
-        }
-
-        // 4. Consulta 2: Retorna las alturas de las Heaps
-        public string Consulta2(List<Proceso> datos)
-        {
-            int alturaMinHeap = (int)Math.Log2(datos.Count);
-            int alturaMaxHeap = (int)Math.Log2(datos.Count);
-
-            return $"Altura de la MinHeap (SJF): {alturaMinHeap}\nAltura de la MaxHeap (PPCSA): {alturaMaxHeap}";
-        }
-
-        // 5. Consulta 3: Retorna los niveles de las Heaps
-        public string Consulta3(List<Proceso> datos)
-        {
-            PriorityQueue<Proceso, int> minHeap = new PriorityQueue<Proceso, int>();
-            PriorityQueue<Proceso, int> maxHeap = new PriorityQueue<Proceso, int>(Comparer<int>.Create((x, y) => y.CompareTo(x)));
-
-            foreach (var proceso in datos)
-            {
-                minHeap.Enqueue(proceso, proceso.tiempo);
-                maxHeap.Enqueue(proceso, proceso.prioridad);
-            }
+            Proceso[] minHeap = BuildHeap(datos, (x, y) => x.tiempo.CompareTo(y.tiempo), true);
+            Proceso[] maxHeap = BuildHeap(datos, (x, y) => x.prioridad.CompareTo(y.prioridad), false);
 
             string nivelesMinHeap = GetNiveles(minHeap);
             string nivelesMaxHeap = GetNiveles(maxHeap);
 
-            return $"Niveles de la MinHeap (SJF):\n{nivelesMinHeap}\nNiveles de la MaxHeap (PPCSA):\n{nivelesMaxHeap}";
+            return $"Niveles del MinHeap (por tiempo de ejecución):\n{nivelesMinHeap}\n\n" +
+                   $"Niveles del MaxHeap (por prioridad):\n{nivelesMaxHeap}";
         }
 
-        private string GetNiveles(PriorityQueue<Proceso, int> heap)
+        
+        public void ShortesJobFirst(List<Proceso> datos, List<Proceso> collected)
         {
-            // Esta función simula la representación por niveles.
-            List<string> niveles = new List<string>();
-            int nivel = 0;
+            Proceso[] minHeap = BuildHeap(datos, (x, y) => x.tiempo.CompareTo(y.tiempo), true);
 
-            while (heap.Count > 0)
+            for (int i = 1; i < minHeap.Length; i++)
             {
-                niveles.Add($"Nivel {nivel}: {heap.Dequeue().ToString()}");
-                nivel++;
+                collected.Add(minHeap[1]);
+                minHeap[1] = minHeap[minHeap.Length - 1];
+                Array.Resize(ref minHeap, minHeap.Length - 1);
+                percolate_down(minHeap, 1, (x, y) => x.tiempo.CompareTo(y.tiempo), true);
+            }
+        }
+
+        
+        public void PreemptivePriority(List<Proceso> datos, List<Proceso> collected)
+        {
+            Proceso[] maxHeap = BuildHeap(datos, (x, y) => x.prioridad.CompareTo(y.prioridad), false);
+
+            for (int i = 1; i < maxHeap.Length; i++)
+            {
+                collected.Add(maxHeap[1]);
+                maxHeap[1] = maxHeap[maxHeap.Length - 1];
+                Array.Resize(ref maxHeap, maxHeap.Length - 1);
+                percolate_down(maxHeap, 1, (x, y) => x.prioridad.CompareTo(y.prioridad), false);
+            }
+        }
+
+      
+        private Proceso[] BuildHeap(List<Proceso> procesos, Comparison<Proceso> comparador, bool is_min)
+        {
+            Proceso[] heap = new Proceso[procesos.Count + 1];
+            for (int i = 0; i < procesos.Count; i++)
+            {
+                heap[i + 1] = procesos[i];
             }
 
-            return string.Join("\n", niveles);
+            for (int i = procesos.Count / 2; i > 0; i--)
+            {
+                percolate_down(heap, i, comparador, is_min);
+            }
+
+            return heap;
+        }
+
+        private void percolate_down(Proceso[] datos, int posicion, Comparison<Proceso> comparador, bool is_min)
+        {
+            Proceso candidato = datos[posicion];
+            bool detener = false;
+            while ((2 * posicion <= datos.Length - 1) && !detener)
+            {
+                int hijo = 2 * posicion;
+                if (hijo != datos.Length - 1 && comparador.Invoke(datos[hijo + 1], datos[hijo]) * (is_min ? 1 : -1) < 0)
+                {
+                    hijo++;
+                }
+                if (comparador.Invoke(candidato, datos[hijo]) * (is_min ? 1 : -1) > 0)
+                {
+                    datos[posicion] = datos[hijo];
+                    posicion = hijo;
+                }
+                else
+                {
+                    detener = true;
+                }
+            }
+            datos[posicion] = candidato;
+        }
+
+        
+        private List<Proceso> GetHojas(Proceso[] heap)
+        {
+            List<Proceso> hojas = new List<Proceso>();
+            int start = heap.Length / 2;
+            for (int i = start; i < heap.Length; i++)
+            {
+                hojas.Add(heap[i]);
+            }
+            return hojas;
+        }
+
+   
+        private int GetAltura(Proceso[] heap)
+        {
+            return (int)Math.Floor(Math.Log2(heap.Length - 1));
+        }
+
+       
+        private string GetNiveles(Proceso[] heap)
+        {
+            string resultado = "";
+            int nivelActual = 0;
+            int elementosEnNivel = 1;
+            int contador = 0;
+
+            for (int i = 1; i < heap.Length; i++)
+            {
+                if (contador == elementosEnNivel)
+                {
+                    nivelActual++;
+                    contador = 0;
+                    elementosEnNivel *= 2;
+                    resultado += "\nNivel " + nivelActual + ": ";
+                }
+                resultado += heap[i].ToString() + " ";
+                contador++;
+            }
+
+            return resultado;
         }
     }
 }
+
